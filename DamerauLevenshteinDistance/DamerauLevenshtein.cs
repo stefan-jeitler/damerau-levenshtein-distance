@@ -13,28 +13,33 @@ public static class DamerauLevenshtein
         if (b.Length == 0)
             return a.Length;
 
-        var costMatrix = Enumerable.Range(0, a.Length + 1)
-            .Select(x => new int[b.Length + 1])
-            .ToArray();
+        var costMatrix = new int[a.Length + 1, b.Length + 1];
 
-        for (var rowIndex = 1; rowIndex <= a.Length; rowIndex++)
-            costMatrix[rowIndex][0] = rowIndex;
-
-        for (var columnIndex = 1; columnIndex <= b.Length; columnIndex++)
-            costMatrix[0][columnIndex] = columnIndex;
+        for (var rowIndex = 1; rowIndex <= a.Length; costMatrix[rowIndex, 0] = rowIndex++) ;
+        for (var columnIndex = 1; columnIndex <= b.Length; costMatrix[0, columnIndex] = columnIndex++) ;
 
         for (var rowIndex = 1; rowIndex <= a.Length; rowIndex++)
         for (var columnIndex = 1; columnIndex <= b.Length; columnIndex++)
         {
             var cost = a[rowIndex - 1] == b[columnIndex - 1] ? 0 : 1;
 
-            var insertion = costMatrix[rowIndex][columnIndex - 1] + 1;
-            var deletion = costMatrix[rowIndex - 1][columnIndex] + 1;
-            var substitution = costMatrix[rowIndex - 1][columnIndex - 1] + cost;
+            var insertion = costMatrix[rowIndex, columnIndex - 1] + 1;
+            var deletion = costMatrix[rowIndex - 1, columnIndex] + 1;
+            var substitution = costMatrix[rowIndex - 1, columnIndex - 1] + cost;
+            
+            var distance = Math.Min(insertion, Math.Min(deletion, substitution));
 
-            costMatrix[rowIndex][columnIndex] = Math.Min(insertion, Math.Min(deletion, substitution));
+            if (rowIndex > 1 && columnIndex > 1 &&
+                a[rowIndex - 1] == b[columnIndex - 2] &&
+                a[rowIndex - 2] == b[columnIndex - 1])
+            {
+                var transposition = costMatrix[rowIndex - 2, columnIndex - 2] + 1;
+                distance = Math.Min(distance, transposition);
+            }
+
+            costMatrix[rowIndex, columnIndex] = distance;
         }
 
-        return costMatrix[a.Length][b.Length];
+        return costMatrix[a.Length, b.Length];
     }
 }
