@@ -1,0 +1,4 @@
+<Solution>
+    <Project Path="DamerauLevenshteinDistance.Tests/DamerauLevenshteinDistance.Tests.csproj"/>
+    <Project Path="DamerauLevenshteinDistance/DamerauLevenshteinDistance.csproj"/>
+</Solution>
