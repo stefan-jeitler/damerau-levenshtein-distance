@@ -128,4 +128,47 @@ public class DamerauLevenshteinTests
 
         Assert.Equal("b", exception.ParamName);
     }
+    
+    [Theory]
+    [InlineData("CA", "ABC", 1, false)]
+    [InlineData("CA", "ABC", 2, true)]
+    [InlineData("haus", "häuser", 2, false)]
+    [InlineData("haus", "häuser", 3, true)]
+    [InlineData("xxxxxx", "yyyyyy", 2, false)]
+    public void Threshold_matches_expected_tolerance_on_edge_cases(
+        string a,
+        string b,
+        int maxDistance,
+        bool shouldBeWithinThreshold)
+    {
+        var options = new DamerauLevenshteinOptions { MaxDistance = maxDistance };
+        var distance = DamerauLevenshtein.CalculateDistance(a, b, options);
+
+        if (shouldBeWithinThreshold)
+            Assert.InRange(distance, 0, maxDistance);
+        else
+            Assert.True(distance > maxDistance);
+    }
+
+    [Theory]
+    [InlineData("abxyzcd", "cdxyzab", 2)]
+    [InlineData("abxyzcd", "cdxyzab", 3)]
+    [InlineData("kitten", "sitting", 2)]
+    [InlineData("kitten", "sitting", 3)]
+    public void Bounded_calculation_never_underestimates_unbounded_distance(
+        string a,
+        string b,
+        int maxDistance)
+    {
+        var exactDistance = DamerauLevenshtein.CalculateDistance(a, b);
+        var boundedDistance = DamerauLevenshtein.CalculateDistance(
+            a,
+            b,
+            new DamerauLevenshteinOptions { MaxDistance = maxDistance });
+
+        if (exactDistance <= maxDistance)
+            Assert.Equal(exactDistance, boundedDistance);
+        else
+            Assert.True(boundedDistance > maxDistance);
+    }
 }
